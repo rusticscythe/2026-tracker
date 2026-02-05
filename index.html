@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Tracking 2026 - ติดตามผลการดำเนินงาน</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .card h3 {
+            color: #333;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .card .target {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 0 40px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 20px 30px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .theme-section {
+            display: none;
+        }
+
+        .theme-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .kpi-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .kpi-title {
+            font-size: 1.4em;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-on-track { background: #d4edda; color: #155724; }
+        .status-at-risk { background: #fff3cd; color: #856404; }
+        .status-behind { background: #f8d7da; color: #721c24; }
+        .status-completed { background: #cce5ff; color: #004085; }
+        .status-not-started { background: #e2e3e5; color: #383d41; }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .quarter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .quarter-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .quarter-card h4 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .quarter-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .quarter-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .department-filter {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .action-items {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .action-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .action-checkbox {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .action-text {
+            flex: 1;
+            font-size: 0.95em;
+            color: #333;
+        }
+
+        .add-action-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-action-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .export-section {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .export-btn {
+            padding: 15px 25px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95em;
+            resize: vertical;
+            margin-top: 10px;
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .summary-cards {
+                padding: 20px;
+                grid-template-columns: 1fr;
+            }
+            
+            .quarter-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .export-section {
+                bottom: 15px;
+                right: 15px;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Performance Tracking 2026</h1>
+            <p>ติดตามผลการดำเนินงานตามกลยุทธ์ 2569</p>
+        </div>
+
+        <div class="summary-cards">
+            <div class="card">
+                <h3>รายได้รวม</h3>
+                <div class="value" id="totalRevenue">0</div>
+                <div class="target">เป้า: 1,900 MB | Challenge: 2,000 MB</div>
+            </div>
+            <div class="card">
+                <h3>กำไรขั้นต้น</h3>
+                <div class="value" id="grossMargin">0%</div>
+                <div class="target">เป้า: 11% | Challenge: 12.5%</div>
+            </div>
+            <div class="card">
+                <h3>Theme 1 Progress</h3>
+                <div class="value" id="theme1Progress">0%</div>
+                <div class="target">Core Business Strength</div>
+            </div>
+            <div class="card">
+                <h3>Theme 2 Progress</h3>
+                <div class="value" id="theme2Progress">0%</div>
+                <div class="target">Digital & Data Foundation</div>
+            </div>
+            <div class="card">
+                <h3>Theme 3 Progress</h3>
+                <div class="value" id="theme3Progress">0%</div>
+                <div class="target">Future Blueprint</div>
+            </div>
+            <div class="card">
+                <h3>Overall Progress</h3>
+                <div class="value" id="overallProgress">0%</div>
+                <div class="target">ความสำเร็จรวม</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('overall')">Overview</button>
+            <button class="tab" onclick="switchTab('theme1')">Theme 1</button>
+            <button class="tab" onclick="switchTab('theme2')">Theme 2</button>
+            <button class="tab" onclick="switchTab('theme3')">Theme 3</button>
+            <button class="tab" onclick="switchTab('channels')">ช่องทาง</button>
+        </div>
+
+        <div class="content">
+            <!-- Overall Tab -->
+            <div id="overall-section" class="theme-section active">
+                <h2 style="margin-bottom: 30px;">📊 ภาพรวมเป้าหมายปี 2569</h2>
+                
+                <div class="department-filter">
+                    <button class="filter-btn active" onclick="filterDepartment('all')">ทั้งหมด</button>
+                    <button class="filter-btn" onclick="filterDepartment('sales-project')">ขาย-โครงการ</button>
+                    <button class="filter-btn" onclick="filterDepartment('sales-wholesale')">ขาย-ค้าส่ง</button>
+                    <button class="filter-btn" onclick="filterDepartment('sales-retail')">ขาย-ปลีก</button>
+                    <button class="filter-btn" onclick="filterDepartment('merchandising')">Merchandising</button>
+                    <button class="filter-btn" onclick="filterDepartment('logistics')">โลจิสติกส์</button>
+                    <button class="filter-btn" onclick="filterDepartment('it')">IT/Digital</button>
+                </div>
+
+                <div class="kpi-item">
+                    <div class="kpi-header">
+                        <div class="kpi-title">🎯 เป้าหมายรายได้รวม 2569</div>
+                        <div class="status-badge status-on-track" id="revenue-status">Not Started</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>ความคืบหน้า</span>
+                            <span id="revenue-progress-text">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="revenue-progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="quarter-grid">
+                        <div class="quarter-card">
+                            <h4>Q1 2569</h4>
+                            <input type="number" class="quarter-input" placeholder="Target (MB)" id="q1-revenue-target">
+                            <input type="number" class="quarter-input" placeholder="Actual (MB)" id="q1-revenue-actual" onchange="updateProgress()">
+                        </div>
+                        <div class="quarter-card">
+                            <h4>Q2 2569</h4>
+                            <input type="number" class="quarter-input" placeholder="Target (MB)" id="q2-revenue-target">
+                            <input type="number" class="quarter-input" placeholder="Actual (MB)" id="q2-revenue-actual" onchange="updateProgress()">
+                        </div>
+                        <div class="quarter-card">
+                            <h4>Q3 2569</h4>
+                            <input type="number" class="quarter-input" placeholder="Target (MB)" id="q3-revenue-target">
+                            <input type="number" class="quarter-input" placeholder="Actual (MB)" id="q3-revenue-actual" onchange="updateProgress()">
+                        </div>
+                        <div class="quarter-card">
+                            <h4>Q4 2569</h4>
+                            <input type="number" class="quarter-input" placeholder="Target (MB)" id="q4-revenue-target">
+                            <input type="number" class="quarter-input" placeholder="Actual (MB)" id="q4-revenue-actual" onchange="updateProgress()">
+                        </div>
+                    </div>
+                    <textarea class="notes-textarea" placeholder="หมายเหตุ..."></textarea>
+                </div>
+            </div>
+
+            <!-- Theme 1-3 sections with sample KPIs -->
+            <div id="theme1-section" class="theme-section">
+                <h2 style="margin-bottom: 30px;">🏗️ Theme 1: Core Business Strength</h2>
+                <p style="color: #666; margin-bottom: 30px;">เสริมแกร่งให้ธุรกิจหลัก - ประสิทธิภาพการดำเนินงาน และศักยภาพของผลิตภัณฑ์และบริการ</p>
+                
+                <div class="kpi-item" data-department="sales-wholesale logistics">
+                    <div class="kpi-header">
+                        <div class="kpi-title">1.1 การขายแบบ Drop Ship</div>
+                        <div class="status-badge status-not-started">Not Started</div>
+                    </div>
+                    <p style="color: #666; margin-bottom: 15px;">
+                        <strong>เป้า:</strong> ครอบคลุม 50% พื้นที่อีสาน มูลค่า ≥ 5 MB<br>
+                        <strong>ฝ่าย:</strong> ฝ่ายขาย-ค้าส่ง, โลจิสติกส์
+                    </p>
+                    <div class="quarter-grid">
+                        <div class="quarter-card"><h4>Q1</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q2</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q3</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q4</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                    </div>
+                    <div class="action-items">
+                        <h4 style="margin-bottom: 15px;">Action Items</h4>
+                        <div class="action-item"><input type="checkbox" class="action-checkbox"><span class="action-text">วิเคราะห์และจัดกลุ่มร้านค้า</span></div>
+                        <button class="add-action-btn" onclick="addActionItem(this)">+ เพิ่ม Action</button>
+                    </div>
+                    <textarea class="notes-textarea" placeholder="หมายเหตุ..."></textarea>
+                </div>
+
+                <div class="kpi-item" data-department="merchandising">
+                    <div class="kpi-header">
+                        <div class="kpi-title">1.3 สินค้ากึ่งสำเร็จรูป</div>
+                        <div class="status-badge status-not-started">Not Started</div>
+                    </div>
+                    <p style="color: #666; margin-bottom: 15px;">
+                        <strong>เป้า:</strong> 3 สินค้า (GP ≥ 15%, ยอดขายต่อเนื่อง)<br>
+                        <strong>ฝ่าย:</strong> Merchandising, ฝ่ายขาย
+                    </p>
+                    <div class="quarter-grid">
+                        <div class="quarter-card"><h4>Q1</h4><input type="number" class="quarter-input" placeholder="จำนวน"></div>
+                        <div class="quarter-card"><h4>Q2</h4><input type="number" class="quarter-input" placeholder="จำนวน"></div>
+                        <div class="quarter-card"><h4>Q3</h4><input type="number" class="quarter-input" placeholder="จำนวน"></div>
+                        <div class="quarter-card"><h4>Q4</h4><input type="number" class="quarter-input" placeholder="จำนวน"></div>
+                    </div>
+                    <textarea class="notes-textarea" placeholder="หมายเหตุ..."></textarea>
+                </div>
+            </div>
+
+            <div id="theme2-section" class="theme-section">
+                <h2 style="margin-bottom: 30px;">💻 Theme 2: Digital & Data Foundation</h2>
+                <p style="color: #666; margin-bottom: 30px;">สร้างสมองให้องค์กร - ระบบข้อมูลและ AI-readiness</p>
+                
+                <div class="kpi-item" data-department="it">
+                    <div class="kpi-header">
+                        <div class="kpi-title">2.1 ระบบฐานข้อมูลลูกค้า</div>
+                        <div class="status-badge status-not-started">Not Started</div>
+                    </div>
+                    <p style="color: #666; margin-bottom: 15px;">
+                        <strong>เป้า:</strong> ระบบพร้อมใช้งาน<br>
+                        <strong>ฝ่าย:</strong> IT/Digital
+                    </p>
+                    <div class="quarter-grid">
+                        <div class="quarter-card"><h4>Q1</h4><input type="number" class="quarter-input" placeholder="% Complete"></div>
+                        <div class="quarter-card"><h4>Q2</h4><input type="number" class="quarter-input" placeholder="% Complete"></div>
+                        <div class="quarter-card"><h4>Q3</h4><input type="number" class="quarter-input" placeholder="% Complete"></div>
+                        <div class="quarter-card"><h4>Q4</h4><input type="number" class="quarter-input" placeholder="% Complete"></div>
+                    </div>
+                    <textarea class="notes-textarea" placeholder="หมายเหตุ..."></textarea>
+                </div>
+
+                <div class="kpi-item" data-department="it">
+                    <div class="kpi-header">
+                        <div class="kpi-title">2.6 PoC Systems</div>
+                        <div class="status-badge status-not-started">Not Started</div>
+                    </div>
+                    <p style="color: #666; margin-bottom: 15px;">
+                        <strong>เป้า:</strong> 2 ระบบ (Vendor Portal, TMS, Chatbot, etc.)<br>
+                        <strong>ฝ่าย:</strong> IT/Digital
+                    </p>
+                    <div class="quarter-grid">
+                        <div class="quarter-card"><h4>Q1</h4><input type="number" class="quarter-input" placeholder="จำนวน"></div>
+                        <div class="quarter-card"><h4>Q2</h4><input type="number" class="quarter-input" placeholder="จำนวน"></div>
+                        <div class="quarter-card"><h4>Q3</h4><input type="number" class="quarter-input" placeholder="จำนวน"></div>
+                        <div class="quarter-card"><h4>Q4</h4><input type="number" class="quarter-input" placeholder="จำนวน"></div>
+                    </div>
+                    <textarea class="notes-textarea" placeholder="หมายเหตุ..."></textarea>
+                </div>
+            </div>
+
+            <div id="theme3-section" class="theme-section">
+                <h2 style="margin-bottom: 30px;">🚀 Theme 3: Future Blueprint</h2>
+                <p style="color: #666; margin-bottom: 30px;">สร้างอนาคต - M&A, Process Improvement, Environmental Impact</p>
+                
+                <div class="kpi-item" data-department="management">
+                    <div class="kpi-header">
+                        <div class="kpi-title">3.1 M&A / OEM Partnership</div>
+                        <div class="status-badge status-not-started">Not Started</div>
+                    </div>
+                    <p style="color: #666; margin-bottom: 15px;">
+                        <strong>เป้า:</strong> 6 Candidates, 2 Pilots<br>
+                        <strong>ฝ่าย:</strong> ผู้บริหาร
+                    </p>
+                    <div class="quarter-grid">
+                        <div class="quarter-card"><h4>Q1</h4><input type="number" class="quarter-input" placeholder="Candidates"></div>
+                        <div class="quarter-card"><h4>Q2</h4><input type="number" class="quarter-input" placeholder="Candidates"></div>
+                        <div class="quarter-card"><h4>Q3</h4><input type="number" class="quarter-input" placeholder="Pilots"></div>
+                        <div class="quarter-card"><h4>Q4</h4><input type="number" class="quarter-input" placeholder="Pilots"></div>
+                    </div>
+                    <textarea class="notes-textarea" placeholder="หมายเหตุ..."></textarea>
+                </div>
+            </div>
+
+            <div id="channels-section" class="theme-section">
+                <h2 style="margin-bottom: 30px;">📈 รายได้แยกตามช่องทาง</h2>
+                
+                <div class="kpi-item">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Wholesale (ค้าส่ง)</div>
+                        <div class="status-badge status-not-started">Not Started</div>
+                    </div>
+                    <p style="color: #666; margin-bottom: 15px;"><strong>Baseline 2568:</strong> 487 MB</p>
+                    <div class="quarter-grid">
+                        <div class="quarter-card"><h4>Q1</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q2</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q3</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q4</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                    </div>
+                </div>
+
+                <div class="kpi-item">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Project (โครงการ)</div>
+                        <div class="status-badge status-at-risk">At Risk</div>
+                    </div>
+                    <p style="color: #666; margin-bottom: 15px;"><strong>Baseline 2568:</strong> 491 MB (-25% YoY)</p>
+                    <div class="quarter-grid">
+                        <div class="quarter-card"><h4>Q1</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q2</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q3</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q4</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                    </div>
+                </div>
+
+                <div class="kpi-item">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Retail (ปลีก)</div>
+                        <div class="status-badge status-at-risk">At Risk</div>
+                    </div>
+                    <p style="color: #666; margin-bottom: 15px;"><strong>Baseline 2568:</strong> 109 MB (-20% YoY)</p>
+                    <div class="quarter-grid">
+                        <div class="quarter-card"><h4>Q1</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q2</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q3</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                        <div class="quarter-card"><h4>Q4</h4><input type="number" class="quarter-input" placeholder="MB"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="export-section">
+        <button class="export-btn" onclick="saveData()">💾 Save</button>
+        <button class="export-btn" onclick="exportToJSON()">📥 Export</button>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.theme-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabName + '-section').classList.add('active');
+        }
+
+        function filterDepartment(dept) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.kpi-item').forEach(item => {
+                const depts = item.getAttribute('data-department');
+                item.style.display = (dept === 'all' || !depts || depts.includes(dept)) ? 'block' : 'none';
+            });
+        }
+
+        function addActionItem(btn) {
+            const div = document.createElement('div');
+            div.className = 'action-item';
+            div.innerHTML = '<input type="checkbox" class="action-checkbox"><input type="text" class="action-text" placeholder="Action ใหม่..." style="border:1px solid #e0e0e0;padding:5px;border-radius:5px;">';
+            btn.parentNode.insertBefore(div, btn);
+        }
+
+        function updateProgress() {
+            const total = ['q1','q2','q3','q4'].reduce((sum, q) => {
+                return sum + (parseFloat(document.getElementById(q+'-revenue-actual').value) || 0);
+            }, 0);
+            
+            document.getElementById('totalRevenue').textContent = total.toFixed(0);
+            const progress = Math.min((total / 1900) * 100, 100);
+            document.getElementById('revenue-progress-text').textContent = progress.toFixed(1) + '%';
+            document.getElementById('revenue-progress-bar').style.width = progress + '%';
+            
+            const status = document.getElementById('revenue-status');
+            if (progress >= 90) { status.textContent = 'On Track'; status.className = 'status-badge status-on-track'; }
+            else if (progress >= 70) { status.textContent = 'At Risk'; status.className = 'status-badge status-at-risk'; }
+            else if (progress > 0) { status.textContent = 'Behind'; status.className = 'status-badge status-behind'; }
+            
+            saveData();
+        }
+
+        function saveData() {
+            const data = { timestamp: new Date().toISOString(), inputs: {} };
+            document.querySelectorAll('input, textarea').forEach(input => {
+                if (input.id || input.className) {
+                    const key = input.id || Math.random().toString(36).substr(2, 9);
+                    data.inputs[key] = { value: input.value, type: input.type, checked: input.checked };
+                }
+            });
+            localStorage.setItem('performanceData', JSON.stringify(data));
+            if (event && event.target) {
+                const btn = event.target;
+                const orig = btn.textContent;
+                btn.textContent = '✓ Saved!';
+                btn.style.background = '#28a745';
+                setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 2000);
+            }
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('performanceData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.keys(data.inputs).forEach(key => {
+                    const input = document.getElementById(key);
+                    if (input) {
+                        input.value = data.inputs[key].value || '';
+                        if (data.inputs[key].type === 'checkbox') input.checked = data.inputs[key].checked || false;
+                    }
+                });
+                updateProgress();
+            }
+        }
+
+        function exportToJSON() {
+            const data = localStorage.getItem('performanceData');
+            if (data) {
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `performance-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        window.addEventListener('load', loadData);
+        setInterval(saveData, 30000);
+    </script>
+</body>
+</html>
